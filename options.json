@@ -1,7 +1,7 @@
 {
-    "admin_password": "wmamh12345",
+    "admin_password": "xqxayjr",
     "problems": [
-        "IT中国第二周作业"
+        "homework"
     ],
     "language": [
         {
@@ -23,7 +23,7 @@
     "start_time": 1666310400000,
     "end_time": 1666879200000,
     "user_file": "resources/user.rar",
-    "max_file_size": 65536,
+    "max_file_size": 4194304,
     "save_type": "normal",
     "save_root": "uploads",
     "hostname": "",

@@ -70,23 +70,17 @@
 </head>
 <body>
     <div>
-        <h3>选手: <%= username %></h3>
+        <h3><%= username %></h3>
     </div>
     <hr>
     <div>
-        <strong>比赛开始时间: <span id="t-start"></span></strong>
+        <strong>开始时间: <span id="t-start"></span></strong>
     </div>
     <div>
-        <strong>比赛结束时间: <span id="t-end"></span></strong>
+        <strong>结束时间: <span id="t-end"></span></strong>
     </div>
     <div>
-        <strong id="c-countdown">距离交题截止: <span id="t-countdown"></span></strong>
-    </div>
-    <div>
-        <% if (options.user_file) { %>
-            <a href="/user/download" target="_blank">下载试题文件</a>
-        <% } %>
-        <a href="/2048" target="_blank">休闲一下</a>
+        <strong id="c-countdown">距离截止: <span id="t-countdown"></span></strong>
     </div>
     <div>
         <span>已提交的文件:</span>
@@ -111,16 +105,16 @@
     <div>
         <h4>注意事项:</h4>
         <ol>
-            <li>各试题名称: <%= options.problems.join(', ') %></li>
-            <li>支持的语言: <%= options.language.map(lang => `${lang.name}(*.${lang.suffix})`).join('; ') %></li>
-            <li>请使用<strong>试题名称(英文小写)和相应语言的后缀名</strong>命名你的代码文件(如:<%= options.problems[0] %>.<%= options.language[0].suffix %>)。</li>
-            <li>提交代码时，选择你要提交的代码文件(可以多选)，然后确定。</li>
-            <li>可以多次提交代码，评测时以最后一次提交为准。</li>
+            <li>作业名称: <%= options.problems.join(', ') %></li>
+            <li>支持的后缀类型: <%= options.language.map(lang => `${lang.name}(*.${lang.suffix})`).join('; ') %></li>
+            <li>请使用<strong>作业名称和相应的后缀名</strong>命名你的文件(如:<%= options.problems[0] %>.<%= options.language[0].suffix %>)。</li>
+            <li>提交时，选择你要提交的文件(可以多选)，然后确定。</li>
+            <li>可以多次提交文件，以最后一次提交为准。</li>
             <% if (options.max_file_size > 0) { %>
-            <li>代码长度限制: <%= res.locals.formatSize(options.max_file_size) %>。超出限制的将无法提交。</li>
+            <li>文件长度限制: <%= res.locals.formatSize(options.max_file_size) %>。超出限制的将无法提交。</li>
             <% } %>
-            <li>如果出现提交失败，请在几秒后重试；如果仍无法提交，请联系出题人。</li>
-            <li>请务必在交题截止前完成提交操作，否则后果自负。</li>
+            <li>如果出现提交失败，请在几秒后重试；如果仍无法提交，请联系章鱼。</li>
+            <li>请务必在截止前完成提交操作。</li>
             <li>如果出现选择文件后未响应的问题，请<strong>切换到默认输入法(即:中文-美式键盘)</strong>后重试。</li>
         </ol>
     </div>

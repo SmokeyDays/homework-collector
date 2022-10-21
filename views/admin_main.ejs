@@ -1,0 +1,541 @@
+<%- include('utility') %>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>管理页面</title>
+    <script src="/jquery.min.js" type="text/javascript"></script>
+    <style type="text/css">
+        body {
+            padding: 0 5px;
+        }
+        body > div {
+            line-height: 1.5;
+        }
+        a {
+            color: #0e90d2;
+            text-decoration: none;
+            transition: all linear .3s 0s;
+        }
+        a:hover {
+            color: #095f8a;
+            text-decoration: underline;
+        }
+        table.users th, table.users td {
+            min-width: 8.5em;
+            text-align: center;
+        }
+        table.users td.operation a {
+            margin: 0 3px;
+        }
+        a.entry {
+            display: block;
+        }
+        .e-none {
+            color: lightgray;
+        }
+        table.options td:first-child {
+            width: 10em;
+        }
+        table.options td:last-child {
+            width: 20em;
+        }
+        table.options td.required:after {
+            content: '[必填]';
+            font-size: smaller;
+            color: gray;
+        }
+        table.options input[type="text"],
+        table.options textarea,
+        table.options select {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h3>管理页面</h3>
+    <hr>
+    <h4>提交情况</h4>
+    <table class="users" rules="all" frames="border" border="1">
+        <thead>
+            <tr>
+                <th>选手</th>
+                <% options.problems.forEach(function(name) {%>
+                <th><%= name %></th>
+                <% }) %>
+                <th class="operation">操作</th>
+                <th>IP</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% users.forEach(function(user) { %>
+            <tr data-username="<%- user.username %>">
+                <td><%= user.username %></td>
+                <% options.problems.forEach(function(name) {%>
+                <td>
+                    <% var entry = user.findSubmitted(name); %>
+                    <% if (entry) { %>
+                    <a class="entry" href="/admin/code/<%- user.username %>/<%- name %>" target="_blank">
+                        <span><%= entry.language %>, <%= res.locals.formatSize(entry.size) %></span>
+                    </a>
+                    <% } else { %>
+                    <span class="e-none">未提交</span>
+                    <% } %>
+                </td>
+                <% }) %>
+                <td class="operation">
+                    <% if (user.banned) { %>
+                    <a class="b-user-action" href="javascript:;" data-action="pardon">解除封禁</a>
+                    <% } else { %>
+                    <a class="b-user-action" href="javascript:;" data-action="login">进入</a>
+                    <a class="b-user-action" href="javascript:;" data-action="ban">封禁</a>
+                    <% } %>
+                    <a class="b-user-action" href="javascript:;" data-action="delete">删除</a>
+                    <a class="b-user-action" href="javascript:;" data-action="force-logout">强制登出</a>
+                </td>
+                <td<% if (user.ips && user.ips.length > 1) { %> style="color: red;"<% } %>><%= (user.ips || []).join(', ') %></td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+    <% if (res.locals.user) { %>
+    <h4>用户设置</h4>
+    <div>
+        <span>当前用户: <%= res.locals.user.username %></span>
+        <a href="/user">转到选手页面</a>
+        <a id="b-user-logout" href="javascript:;">注销</a>
+    </div>
+    <% } %>
+    <h4>服务器设置</h4>
+    <%
+        let dateStart = new Date();
+        dateStart.setTime(options.start_time);
+        let dateEnd = new Date();
+        dateEnd.setTime(options.end_time);
+    %>
+    <table class="options" border="0">
+        <tbody>
+            <tr>
+                <td class="required">题目名称</td>
+                <td><input id="i-problems" type="text" value="<%- options.problems.join(',') %>" title="用英文逗号(,)分隔。警告: 删除已有提交的题目可能引起异常。"></td>
+            </tr>
+            <tr>
+                <td class="required">提交语言</td>
+                <td>
+                    <input id="i-language" type="text" value="<%- options.language.map((a) => a.suffix + '=' + a.name).join(';') %>" title="格式: 后缀名=语言名称，用英文分号(;)分隔。警告: 删除已使用过的语言可能引起异常。">
+                </td>
+            </tr>
+            <tr>
+                <td>比赛公告</td>
+                <td>
+                    <textarea id="i-announcement" rows="4" style="resize: vertical;" title="两条公告之间用不少于两个空行分隔。支持HTML。"><%= options.announcement.join('\n\n') %></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td class="required">比赛开始时间</td>
+                <td><input id="i-time-start" type="text" value="<%- dateStart.toLocaleString() %>"></td>
+            </tr>
+            <tr>
+                <td class="required">比赛结束时间</td>
+                <td><input id="i-time-end" type="text" value="<%- dateEnd.toLocaleString() %>"></td>
+            </tr>
+            <tr>
+                <td>下发文件路径</td>
+                <td><input id="i-user-file" type="text" value="<%- options.user_file %>"></td>
+            </tr>
+            <tr>
+                <td>文件大小限制</td>
+                <td>
+                    <input id="i-max-file-size" type="number" step="1" style="width: 8em;" value="<%- options.max_file_size > 0 ? options.max_file_size : "" %>">
+                    <span style="font-size: smaller;">Bytes [不填则无限制]</span>
+                </td>
+            </tr>
+            <tr style="height: 10px;">
+                <td colspan="2"></td>
+            </tr>
+            <tr>
+                <td>用户名正则</td>
+                <td>
+                    <input id="i-username-regex" type="text" value="<%- options.username_regex %>">
+                </td>
+            </tr>
+            <tr>
+                <td>用户名提示</td>
+                <td>
+                    <input id="i-username-tip" type="text" value="<%- options.username_tip %>">
+                </td>
+            </tr>
+            <tr>
+                <td class="required">用户名格式</td>
+                <td>
+                    <input id="i-username-regex-case-sensitive" type="checkbox"<% if (options.username_regex_case_sensitive) { %> checked<% } %>>
+                    <label for="i-username-regex-case-sensitive" style="font-size: smaller;">大小写敏感</label>
+                    <input id="i-force-username-format" type="checkbox"<% if (options.force_username_format) { %> checked<% } %>>
+                    <label for="i-force-username-format" style="font-size: smaller;">强制格式要求</label>
+                </td>
+            </tr>
+            <tr style="height: 10px;">
+                <td colspan="2"></td>
+            </tr>
+            <tr>
+                <td class="required">登录验证</td>
+                <td>
+                    <input id="i-use-authorization" type="checkbox"<% if (options.use_authorization) { %> checked<% } %>>
+                    <label for="i-use-authorization" style="font-size: smaller;">启用登录验证</label>
+                    <input id="i-allow-ip-authorization" type="checkbox"<% if (options.allow_ip_authorization) { %> checked<% } %>>
+                    <label for="i-allow-ip-authorization" style="font-size: smaller;">允许通过IP进行验证</label>
+                </td>
+            </tr>
+            <tr style="height: 10px;">
+                <td colspan="2"></td>
+            </tr>
+            <tr>
+                <td>服务器地址</td>
+                <td><input type="text" id="i-hostname" value="<%- options.hostname %>" title="不填则监听所有地址"></td>
+            </tr>
+            <tr>
+                <td class="required">服务器端口</td>
+                <td>
+                    <input type="number" id="i-port" min="1" max="65535" step="1" value="<%- options.port %>" title="HTTP默认端口为80，HTTPS默认端口为443">
+                    <span style="font-size: smaller;">更改服务器地址和端口将在重启后生效</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div style="margin-top: 10px;">
+        <input id="b-save-options" type="button" value="保存设置">
+        <input id="b-reload-options" type="button" value="重新加载配置文件">
+    </div>
+    <h4>代码存放位置</h4>
+    <table class="options" border="0">
+        <tbody>
+            <tr>
+                <td class="required">存放目录</td>
+                <td>
+                    <input id="i-save-root" type="text" value="<%- options.save_root %>">
+                </td>
+            </tr>
+            <tr>
+                <td class="required">存放方式</td>
+                <td>
+                    <select id="i-save-type">
+                        <option value="normal"<% if (options.save_type === 'normal') { %> selected<% } %>>直接存放在选手目录下</option>
+                        <option value="subfolder"<% if (options.save_type === 'subfolder') { %> selected<% } %>>存放在以题目名称命名的子文件夹下</option>
+                    </select>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div>
+        <a id="b-download-code" href="/admin/code-all/download" target="_blank">下载全部代码</a>
+        <span style="font-size: smaller;">将按照上面选择的存放方式进行打包。</span>
+    </div>
+    <div style="margin-top: 5px;">
+        <input id="i-confirm-save-method" type="button" value="更改存放方式" disabled>
+        <span style="font-size: smaller;">注意: 更改以上设置会清除所有已有的提交记录!</span>
+    </div>
+    <div>
+        <span style="font-size: smaller; color: red;">警告: 直接更改options.json中的save_type和save_root字段可能引起异常!</span>
+    </div>
+    <h4>安全设置</h4>
+    <div>
+        <input id="i-password-old" type="password" placeholder="原密码">
+    </div>
+    <div>
+        <input id="i-password-new" type="password" placeholder="新密码">
+    </div>
+    <div>
+        <input id="b-password-confirm" type="button" value="更改密码">
+        <a href="/admin/logout">退出管理页面</a>
+    </div>
+    <h4 style="color: red;">危险区</h4>
+    <div>
+        <input id="b-reset-pre" type="button" value="清除全部数据">
+        <span id="reset-box" style="display: none;">
+            <span>输入管理员密码:</span>
+            <input id="b-reset-password" type="password">
+            <input id="b-reset-confirm" type="button" value="确认">
+        </span>
+    </div>
+    <script type="text/javascript">
+        var oldSaveType = <%- JSON.stringify(options.save_type) || 'null' %>;
+        var oldSaveRoot = <%- JSON.stringify(options.save_root) || 'null' %>;
+        function parseDate(str) {
+            if (isNaN(str)) {
+                return new Date(str).getTime();
+            } else {
+                return parseInt(str);
+            }
+        }
+        function getOptions() {
+            var $input, tmp, tmp2;
+            var obj = {};
+
+            $input = $('#i-problems');
+            tmp = $input.val();
+            if (!tmp) {
+                $input.focus();
+                return null;
+            }
+            obj.problems = tmp.split(',');
+
+            $input = $('#i-language');
+            tmp = $input.val().split(';');
+            tmp2 = [];
+            for (var i = 0; i < tmp.length; ++i) {
+                if (!tmp[i]) continue;
+                var a = tmp[i].split('=');
+                if (a.length !== 2) {
+                    $input.select();
+                    return null;
+                }
+                tmp2.push({
+                    name: a[1],
+                    suffix: a[0]
+                });
+            }
+            if (!tmp2.length) {
+                $input.select();
+                return null;
+            }
+            obj.language = tmp2;
+
+            tmp = $('#i-announcement').val().split('\n\n');
+            tmp2 = [];
+            for (var i = 0; i < tmp.length; ++i) {
+                tmp[i] = tmp[i].trim();
+                if (tmp[i]) tmp2.push(tmp[i]);
+            }
+            obj.announcement = tmp2;
+
+            obj.username_regex = $('#i-username-regex').val().trim();
+            obj.username_tip = $('#i-username-tip').val().trim();
+            obj.username_regex_case_sensitive = $('#i-username-regex-case-sensitive').prop('checked');
+            obj.force_username_format = $('#i-force-username-format').prop('checked');
+        
+            obj.use_authorization = $('#i-use-authorization').prop('checked');
+            obj.allow_ip_authorization = $('#i-allow-ip-authorization').prop('checked');
+
+            $input = $('#i-time-start');
+            tmp = parseDate($input.val());
+            if (isNaN(tmp)) {
+                $input.select();
+                return null;
+            }
+            obj.start_time = tmp;
+
+            $input = $('#i-time-end');
+            tmp = parseDate($input.val());
+            if (isNaN(tmp)) {
+                $input.select();
+                return null;
+            }
+            obj.end_time = tmp;
+
+            obj.user_file = $('#i-user-file').val();
+
+            tmp = $('#i-max-file-size').val();
+            obj.max_file_size = tmp ? parseInt(tmp) : -1;
+            
+            obj.hostname = $('#i-hostname').val();
+
+            $input = $('#i-port');
+            tmp = parseInt($input.val());
+            if (isNaN(tmp) || tmp < 1 || tmp > 65535) {
+                $input.select();
+                return null;
+            }
+            obj.port = tmp;
+
+            return obj;
+        }
+        $('#b-save-options').click(function() {
+            var obj = getOptions();
+            if (!obj) return;
+            var $this = $(this);
+            $this.val("保存中...").prop('disabled', true);
+            $.ajax({
+                method: 'POST',
+                url: '/api/admin/options/modify',
+                data: {
+                    value: JSON.stringify(obj)
+                },
+                dataType: 'json'
+            }).done(function(data) {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message);
+                    $this.val("保存设置").prop('disabled', false);
+                    $input.select();
+                }
+            }).fail(function() {
+                alert('未知错误');
+                $this.val("保存设置").prop('disabled', false);
+            });
+        });
+        $('#b-reload-options').click(function() {
+            $.ajax({
+                url: '/api/admin/options/reload',
+                method: 'POST',
+                dataType: 'json'
+            }).done(function(data) {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert("失败: " + data.message);
+                }
+            }).fail(function() {
+                alert("未知错误");
+            });
+        });
+        function getSaveType() {
+            var sel = $('#i-save-type').get(0);
+            return sel.options[sel.selectedIndex].value;
+        }
+        function updateSaveMethodButton() {
+            var saveType = getSaveType();
+            var saveRoot = $('#i-save-root').val();
+            if (!saveRoot || (saveType === oldSaveType && saveRoot === oldSaveRoot)) {
+                $('#i-confirm-save-method').prop('disabled', true);
+            } else {
+                $('#i-confirm-save-method').prop('disabled', false);
+            }
+        }
+        $('#i-save-type').change(function() {
+            updateSaveMethodButton();
+            $('#b-download-code').prop('href', '/admin/code-all/download?save_type=' + this.value);
+        });
+        $('#i-save-root').on('input', function() {
+            updateSaveMethodButton();
+        });
+        $('#i-confirm-save-method').click(function() {
+            var saveType = getSaveType();
+            var saveRoot = $('#i-save-root').val();
+            if (!confirm("此操作将清空所有已有的提交记录。是否继续?")) return;
+            $.ajax({
+                method: 'POST',
+                url: '/api/admin/change-save-method',
+                data: {
+                    type: saveType,
+                    root: saveRoot
+                },
+                dataType: 'json'
+            }).done(function(data) {
+                if (data.success) {
+                    alert("操作成功");
+                    location.reload();
+                } else {
+                    alert("操作失败: " + data.message);
+                }
+            }).fail(function() {
+                alert("操作失败: 未知错误");
+            });
+        });
+        $('#b-user-logout').click(function() {
+            $.ajax({
+                method: 'POST',
+                url: '/api/admin/user-action/logout'
+            }).done(function(data) {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert("操作失败: " + data.message);
+                }
+            }).fail(function() {
+                alert("未知错误");
+            });
+        });
+        $('.b-user-action').click(function() {
+            var $this = $(this);
+            var username = $this.parents('tr').attr('data-username');
+            var action = $this.attr('data-action');
+            if (action === 'delete' && !confirm("确认删除用户 " + username + " ? 该操作不可撤销。")) return;
+            if (action === 'force-logout' && !confirm("确认使用户 " + username + " 强制登出? 该操作不可撤销。")) return;
+            $.ajax({
+                method: 'POST',
+                url: '/api/admin/user-action/' + action,
+                data: {
+                    username: username
+                },
+                dataType: 'json'
+            }).done(function(data) {
+                if (data.success) {
+                    if (action === 'login') {
+                        location.href = "/user";
+                    } else {
+                        location.reload();
+                    }
+                } else {
+                    alert("操作失败: " + data.message);
+                }
+            }).fail(function() {
+                alert("未知错误");
+            });
+        });
+        $('#b-password-confirm').click(function() {
+            var $input, oldPassword, newPassword;
+            $input = $('#i-password-old');
+            oldPassword = $input.val();
+            if (!oldPassword) {
+                $input.focus();
+                return;
+            }
+            $input = $('#i-password-new');
+            newPassword = $input.val();
+            if (!newPassword) {
+                $input.focus();
+                return;
+            }
+            $.ajax({
+                method: 'POST',
+                url: '/api/admin/change-password',
+                data: {
+                    old: oldPassword,
+                    new: newPassword
+                },
+                dataType: 'json'
+            }).done(function(data) {
+                if (data.success) {
+                    alert('修改成功!');
+                    location.reload();
+                } else {
+                    alert(data.message);
+                    $('#i-password-old').focus();
+                }
+            }).fail(function() {
+                alert('未知错误!');
+            });
+        });
+        $('#b-reset-pre').click(function() {
+            $('#reset-box').show();
+            $('#b-reset-password').focus();
+        });
+        $('#b-reset-confirm').click(function() {
+            var $password = $('#b-reset-password');
+            var password = $password.val();
+            if (!password) {
+                $password.focus();
+                return;
+            }
+            if (!confirm('确认清除全部数据?\n这将会删除所有用户和提交记录，并且清空所有的浏览会话。')) return;
+            $.ajax({
+                method: 'POST',
+                url: '/api/admin/reset',
+                data: {
+                    password: password
+                },
+                dataType: 'json'
+            }).done(function(data) {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert("操作失败: " + data.message);
+                }
+            }).fail(function() {
+                alert("未知错误");
+            });
+        });
+    </script>
+</body>
+</html>

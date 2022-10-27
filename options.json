@@ -1,7 +1,7 @@
 {
     "admin_password": "xqxayjr",
     "problems": [
-        "homework"
+        "homework_2"
     ],
     "language": [
         {
@@ -11,6 +11,30 @@
         {
             "name": "ZIP",
             "suffix": "zip"
+        },
+        {
+            "name": "DOC",
+            "suffix": "doc"
+        },
+        {
+            "name": "DOCX",
+            "suffix": "docx"
+        },
+        {
+            "name": "PDF",
+            "suffix": "pdf"
+        },
+        {
+            "name": "PNG",
+            "suffix": "png"
+        },
+        {
+            "name": "JPG",
+            "suffix": "jpg"
+        },
+        {
+            "name": "GIF",
+            "suffix": "gif"
         }
     ],
     "announcement": [],
@@ -18,13 +42,13 @@
     "username_tip": "请填写学号: Uxxxxxxxxx",
     "username_regex_case_sensitive": false,
     "force_username_format": true,
-    "use_authorization": true,
+    "use_authorization": false,
     "allow_ip_authorization": false,
-    "start_time": 1666310400000,
-    "end_time": 1666879200000,
-    "user_file": "resources/user.rar",
-    "max_file_size": 4194304,
-    "save_type": "normal",
+    "start_time": 1666886400000,
+    "end_time": 1667440800000,
+    "user_file": "resources/homework.docx",
+    "max_file_size": 8388608,
+    "save_type": "subfolder",
     "save_root": "uploads",
     "hostname": "",
     "port": 2637,
@@ -62,6 +86,7 @@
         "U202114963": "胡伟江",
         "U202112142": "叶迅",
         "U202115409": "陈诺",
-        "U202110780": "卞曜洋"
+        "U202110780": "卞曜洋",
+        "U202111126": "何佳奕"
     }
 }

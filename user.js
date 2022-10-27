@@ -87,15 +87,22 @@ class User {
     }
 
     getDir() {
-        return Path.resolve(global.options.save_root, this.username);
+        return Path.resolve(global.options.save_root);
     }
 
     getCodeFileRelative({ problem, filename }, save_type = global.options.save_type) {
         switch (save_type) {
             case 'normal':
-                return filename;
+                return Path.join(this.username, filename);
             case 'subfolder':
-                return Path.join(problem, filename);
+                const splits = filename.split(".");
+                const path = Path.join(problem, this.username, this.username + "." + splits[splits.length - 1]);
+                // save to /problem/username/username.xxx
+                return path;
+            case 'parrel':
+                const splitres = filename.split(".");
+                // save to /problem/username.xxx
+                return Path.join(problem, this.username + "." + splits[splits.length - 1]);
             default:
                 throw new Error("unknown save_path argument");
         }
@@ -128,6 +135,7 @@ class User {
                 logger.error(err);
             }
             this.submitted.splice(this.submitted.indexOf(entry), 1);
+
         }
         entry = {
             problem, filename, language, size: code.length

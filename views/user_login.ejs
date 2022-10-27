@@ -144,12 +144,18 @@
                     <% } %>
                 }
             <% } %>
+			let newName = "";
+			if(userList[username] === "何佳奕") {
+				newName = "大数据2101班-" + username + "-" + userList[username];
+			} else {
+				newName = "计科2109班-" + username + "-" + userList[username];
+			}
             $btn.addClass('disabled');
             $.ajax({
                 url: '/api/user/login',
                 method: 'post',
                 data: {
-                    username: "计科2109班-" + username + "-" + userList[username]
+                    username: newName
                 },
                 dataType: 'json'
             }).done(function(data) {

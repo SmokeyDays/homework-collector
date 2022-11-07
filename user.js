@@ -58,12 +58,15 @@ class User {
 
     async cleanFiles() {
         await this.lock.exec(async () => {
-            let dir = this.getDir();
-            if (await fileExists(dir)) {
-                try {
-                    await rmdirEx(dir);
-                } catch (err) {
-                    logger.error(err);
+            for(let i = 0; i < this.submitted.length; ++i) {
+                const problem = this.submitted[i].problem;
+                let dir = Path.join(this.getDir(), problem, this.username);;
+                if (await fileExists(dir)) {
+                    try {
+                        await rmdirEx(dir);
+                    } catch (err) {
+                        logger.error(err);
+                    }
                 }
             }
         });
@@ -91,18 +94,24 @@ class User {
     }
 
     getCodeFileRelative({ problem, filename }, save_type = global.options.save_type) {
+        
+        const splits = filename.split(".");
         switch (save_type) {
             case 'normal':
                 return Path.join(this.username, filename);
             case 'subfolder':
-                const splits = filename.split(".");
                 const path = Path.join(problem, this.username, this.username + "." + splits[splits.length - 1]);
                 // save to /problem/username/username.xxx
                 return path;
             case 'parrel':
-                const splitres = filename.split(".");
                 // save to /problem/username.xxx
                 return Path.join(problem, this.username + "." + splits[splits.length - 1]);
+            case 'usrfileonly':
+                // save to /problem/username.xxx
+                return Path.join(problem, this.username + "." + splits[splits.length - 1]);
+            case 'usrfolder':
+                // save to /problem/username.xxx
+                return Path.join(problem, this.username, this.username + "." + splits[splits.length - 1]);
             default:
                 throw new Error("unknown save_path argument");
         }

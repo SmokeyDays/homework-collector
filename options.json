@@ -1,7 +1,7 @@
 {
     "admin_password": "xqxayjr",
     "problems": [
-        "homework_2"
+        "homework_3"
     ],
     "language": [
         {
@@ -44,9 +44,9 @@
     "force_username_format": true,
     "use_authorization": false,
     "allow_ip_authorization": false,
-    "start_time": 1666886400000,
-    "end_time": 1667440800000,
-    "user_file": "resources/homework.docx",
+    "start_time": 1667620800000,
+    "end_time": 1668088800000,
+    "user_file": "resources/homework_3.docx",
     "max_file_size": 8388608,
     "save_type": "subfolder",
     "save_root": "uploads",

@@ -221,6 +221,8 @@
                     <select id="i-save-type">
                         <option value="normal"<% if (options.save_type === 'normal') { %> selected<% } %>>直接存放在选手目录下</option>
                         <option value="subfolder"<% if (options.save_type === 'subfolder') { %> selected<% } %>>存放在以题目名称命名的子文件夹下</option>
+						<option value="usrfileonly"<% if (options.save_type === 'usrfileonly') { %> selected<% } %>>直接存放在题目目录下</option>
+						<option value="usrfolder"<% if (options.save_type === 'usrfolder') { %> selected<% } %>>直接存放在以用户名称命名的子文件夹下</option>
                     </select>
                 </td>
             </tr>

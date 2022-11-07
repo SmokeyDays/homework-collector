@@ -18,7 +18,9 @@ module.exports = function({ minElapse = 100, maxRepeatCount = 32, maxWarnCount =
     let clients = new Map();
 
     let res = (req, res, next) => {
-        let ip = req.ip;
+        //X－FORWARDED－FOR by Apache
+        let ip = req.headers["x-forwarded-for"];
+        // let ip = req.ip;
         let inst;
         let result = 'accept';
         if (clients.has(ip)) {

@@ -1,6 +1,10 @@
 
 'use strict';
 
+function getReqIp(req) {
+    return req.headers["x-forwarded-for"];
+}
+
 const fs   = require('fs-extra');
 const Path = require('path');
 
@@ -71,7 +75,7 @@ let multer = Multer({
 });
 
 app.use((req, res, next) => {
-    logger.log([req.ip, req.method, req.url].join(' '));
+    logger.log([getReqIp(req), req.method, req.url].join(' '));
     next();
 });
 
@@ -109,7 +113,7 @@ app.use(async (req, res, next) => {
     try {
         let user = res.locals.user;
         if (user) {
-            await user.recordIp(req.ip);
+            await user.recordIp(getReqIp(req));
         }
         next();
     } catch (err) {
@@ -216,7 +220,7 @@ app.post('/api/user/login', async (req, res) => {
             let flag = true;
             if (!options.use_authorization) {
                 flag = false;
-            } else if (options.allow_ip_authorization && user.ips && user.ips.includes(req.ip)) {
+            } else if (options.allow_ip_authorization && user.ips && user.ips.includes(getReqIp(req))) {
                 flag = false;
             }
             if (flag) {
@@ -467,7 +471,7 @@ app.get('/admin/code-all/download', async (req, res) => {
         let stream = new compressing.zip.Stream();
 
         let save_type = req.query.save_type || global.options.save_type;
-        if (!['normal', 'subfolder'].includes(save_type)) {
+        if (!['normal', 'subfolder', "usrfileonly", "usrfolder"].includes(save_type)) {
             throw new ClientError("参数错误");
         }
 
@@ -480,7 +484,7 @@ app.get('/admin/code-all/download', async (req, res) => {
                     let relativePath = user.getCodeFileRelative(entry, save_type);
                     let absolutePath = user.getCodeFile(entry);
                     stream.addEntry(absolutePath, {
-                        relativePath: Path.join(user.username, relativePath)
+                        relativePath: relativePath
                     });
                     flag = true;
                 }
